@@ -1,0 +1,104 @@
+buildscript {
+	ext {
+		springBootVersion = '2.0.0.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+		
+		maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+		classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1"
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'maven'
+apply plugin: 'org.sonarqube'
+apply plugin: "jacoco"
+
+group = 'com.fsw.simulacion.project'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+
+configurations {
+    deployerJars
+}
+
+repositories {
+	mavenCentral()
+}
+
+
+dependencies {
+	compile('org.springframework.boot:spring-boot-starter-web')
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+    deployerJars("org.apache.maven.wagon:wagon-http:2.7")
+}
+
+ext.urlRepository = "http://10.230.168.223:8081/nexus/content/repositories/releases"
+ext.urlSnapshotRepository = "http://10.230.168.223:8081/nexus/content/repositories/snapshots"
+ext.projectName = "demo-spring-gradle"
+
+ext.jacocoVersion = '0.7.6.201602180812'
+
+sourceSets {
+  main.java.srcDir "src/main/java"
+  test.java.srcDir "src/test/java"
+}
+
+jacoco{
+  toolVersion = "${jacocoVersion}"
+}
+
+jacocoTestReport {
+ reports{
+  html.enabled=true
+  xml.enabled=true
+  csv.enabled=true
+ }
+}
+
+sonarqube {
+  properties {
+    property "sonar.projectName", "Spring Boot Demo"
+    property "sonar.host.url", "http://10.230.168.223:9000"
+    property "sonar.reportPath" , "${project.buildDir}/jacoco/test.exec"
+  }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            configuration = configurations.deployerJars
+
+            repository(url: urlRepository) {
+                authentication(
+                        userName: "admin",
+                        password: "admin123"
+                )
+            }
+
+            snapshotRepository(url: urlSnapshotRepository) {
+                authentication(
+                        userName: "admin",
+                        password: "admin123",
+                )
+            }
+
+            pom {
+                groupId = project.group
+                artifactId = projectName
+                version = project.version
+            }
+        }
+    }
+}
