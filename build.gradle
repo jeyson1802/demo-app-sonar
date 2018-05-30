@@ -70,7 +70,7 @@ jacocoTestReport {
 sonarqube {
   properties {
     property "sonar.projectName", "Spring Boot Demo"
-    property "sonar.host.url", "<ip-externa>"
+    property "sonar.host.url", "http://localhost"
     property "sonar.reportPath" , "${project.buildDir}/jacoco/test.exec"
   }
 }
